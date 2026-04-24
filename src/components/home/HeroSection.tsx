@@ -1,11 +1,13 @@
-import { Search, BookOpen, Video, FileText, ArrowRight } from 'lucide-react';
+import { Search, BookOpen, Video, FileText, ArrowRight, GraduationCap, ChevronRight } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePublishedClasses } from '@/hooks/useClasses';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+
+import { parseClassName, getDisplayClassName } from '@/lib/classParser';
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,11 +95,11 @@ const HeroSection = () => {
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-white/80 mb-8 max-w-2xl mx-auto animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            Comprehensive study materials, video lectures, and practice resources for Classes 9-12. Everything you need to excel in your board exams.
+            Comprehensive study materials, video lectures, and practice resources for all classes. Everything you need to excel in your exams.
           </p>
 
           {/* Search Bar */}
-          <div ref={containerRef} className="relative max-w-xl mx-auto mb-10 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <div ref={containerRef} className="relative max-w-xl mx-auto mb-8 animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
               <Input
@@ -145,7 +147,7 @@ const HeroSection = () => {
                           >
                             <span className="text-lg">{c.icon || '📚'}</span>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium truncate">{c.name}</div>
+                              <div className="font-medium truncate">{getDisplayClassName(c.name)}</div>
                               {c.description && (
                                 <div className="text-xs text-muted-foreground truncate">
                                   {c.description}
@@ -192,21 +194,88 @@ const HeroSection = () => {
             )}
           </div>
 
-          {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-3 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+          {/* Feature Pills — Clickable, linked to admin-managed content pages */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+            <Link
+              to="/video-lectures"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/25 backdrop-blur-sm text-white border border-white/10 hover:border-white/30 px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105"
+            >
               <Video className="h-4 w-4 text-accent" />
               <span>Video Lectures</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+            </Link>
+            <Link
+              to="/pdf-notes"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/25 backdrop-blur-sm text-white border border-white/10 hover:border-white/30 px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105"
+            >
               <FileText className="h-4 w-4 text-accent" />
               <span>PDF Notes</span>
-            </div>
-            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm">
+            </Link>
+            <Link
+              to="/mind-maps"
+              className="flex items-center gap-2 bg-white/10 hover:bg-white/25 backdrop-blur-sm text-white border border-white/10 hover:border-white/30 px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105"
+            >
               <BookOpen className="h-4 w-4 text-accent" />
               <span>Mind Maps</span>
-            </div>
+            </Link>
           </div>
+
+          {/* ─── SELECT CLASS SECTION ─── */}
+          {classes && classes.length > 0 && (
+            <div className="animate-slide-up" style={{ animationDelay: '0.4s' }}>
+              {/* Label */}
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <GraduationCap className="h-5 w-5 text-accent" />
+                <p className="text-white/90 font-semibold text-base uppercase tracking-widest">
+                  Select Your Class
+                </p>
+                <GraduationCap className="h-5 w-5 text-accent" />
+              </div>
+
+              {/* Class Pills */}
+              <div className="flex flex-wrap justify-center gap-2 max-w-2xl mx-auto">
+                {classes.map((cls) => (
+                  <button
+                    key={cls.id}
+                    onClick={() => navigate(`/class/${cls.id}`)}
+                    className="group flex items-center gap-1.5 bg-white/15 hover:bg-white/30 backdrop-blur-sm text-white border border-white/20 hover:border-white/50 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                  >
+                    <span className="text-base leading-none">{cls.icon || '📚'}</span>
+                    <span>{getDisplayClassName(cls.name)}</span>
+                    <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity -ml-0.5" />
+                  </button>
+                ))}
+                {/* View All Classes */}
+                <button
+                  onClick={() => navigate('/classes')}
+                  className="flex items-center gap-1.5 bg-accent/80 hover:bg-accent text-white border border-accent/30 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                >
+                  <span>View All</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Loading state for classes */}
+          {!classes && (
+            <div className="animate-slide-up" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <GraduationCap className="h-5 w-5 text-accent" />
+                <p className="text-white/90 font-semibold text-base uppercase tracking-widest">
+                  Select Your Class
+                </p>
+                <GraduationCap className="h-5 w-5 text-accent" />
+              </div>
+              <div className="flex flex-wrap justify-center gap-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="h-9 w-24 rounded-full bg-white/10 animate-pulse"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

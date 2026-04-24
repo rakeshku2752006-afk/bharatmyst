@@ -17,6 +17,10 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminForgotPassword from "./pages/admin/AdminForgotPassword";
 import AdminProtectedRoute from "./components/admin/AdminProtectedRoute";
+import VideoLecturesPage from "./pages/VideoLecturesPage";
+import PdfNotesPage from "./pages/PdfNotesPage";
+import MindMapsPage from "./pages/MindMapsPage";
+import AudioLecturesPage from "./pages/AudioLecturesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +39,10 @@ const App = () => (
           <Route path="/chapter/:chapterId" element={<ChapterPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/video-lectures" element={<VideoLecturesPage />} />
+          <Route path="/pdf-notes" element={<PdfNotesPage />} />
+          <Route path="/mind-maps" element={<MindMapsPage />} />
+          <Route path="/audio-lectures" element={<AudioLecturesPage />} />
           
           {/* Admin Auth */}
           <Route path="/admin/login" element={<AdminLogin />} />

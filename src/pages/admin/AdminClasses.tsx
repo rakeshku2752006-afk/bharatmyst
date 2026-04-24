@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Pencil, Trash2, GripVertical, ChevronRight } from 'lucide-react';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -30,6 +30,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { useClasses, useCreateClass, useDeleteClass, useUpdateClass, Class } from '@/hooks/useClasses';
 import { useChapters } from '@/hooks/useChapters';
+import { parseClassName, formatClassName, getDisplayClassName } from '@/lib/classParser';
 
 const EMOJI_OPTIONS = ['📚', '📖', '🎓', '🏆', '📝', '🔬', '🧮', '🌍', '💻', '🎨', '🎵', '⚽'];
 
@@ -40,21 +41,30 @@ const AdminClasses = () => {
   const updateClass = useUpdateClass();
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newClassName, setNewClassName] = useState('');
+  const [newGrade, setNewGrade] = useState('Class 12');
+  const [newSubject, setNewSubject] = useState('');
+  const [newBoard, setNewBoard] = useState('CBSE');
+  const [newLanguage, setNewLanguage] = useState('English');
+  
   const [newClassDescription, setNewClassDescription] = useState('');
   const [newClassIcon, setNewClassIcon] = useState('📚');
 
   const handleAddClass = async () => {
-    if (!newClassName.trim()) return;
+    if (!newGrade.trim() || !newSubject.trim()) return;
+    
+    const combinedName = formatClassName(newGrade, newSubject, newBoard, newLanguage);
     
     await createClass.mutateAsync({
-      name: newClassName,
+      name: combinedName,
       description: newClassDescription,
       icon: newClassIcon,
     });
     
     setIsAddDialogOpen(false);
-    setNewClassName('');
+    setNewGrade('Class 12');
+    setNewSubject('');
+    setNewBoard('CBSE');
+    setNewLanguage('English');
     setNewClassDescription('');
     setNewClassIcon('📚');
   };
@@ -68,21 +78,21 @@ const AdminClasses = () => {
   };
 
   return (
-    <AdminLayout title="Classes & Chapters" subtitle="Manage all classes and their chapters">
+    <AdminLayout title="Classes & Categories" subtitle="Manage all classes, subjects, boards & languages">
       {/* Add Class Button */}
       <div className="flex justify-end mb-6">
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Add New Class
+              Add New Category
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Class</DialogTitle>
+              <DialogTitle>Add New Class Category</DialogTitle>
               <DialogDescription>
-                Create a new class for your students.
+                Create a specific category (e.g. Class 12 - Physics - Bihar Board - Hindi).
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -105,20 +115,51 @@ const AdminClasses = () => {
                   ))}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="className">Class Name</Label>
-                <Input
-                  id="className"
-                  placeholder="e.g., Class 8"
-                  value={newClassName}
-                  onChange={(e) => setNewClassName(e.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="grade">Class / Grade</Label>
+                  <Input
+                    id="grade"
+                    placeholder="e.g., Class 12, BSc"
+                    value={newGrade}
+                    onChange={(e) => setNewGrade(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="subject">Subject</Label>
+                  <Input
+                    id="subject"
+                    placeholder="e.g., Physics, Spoken English"
+                    value={newSubject}
+                    onChange={(e) => setNewSubject(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="board">Board / University</Label>
+                  <Input
+                    id="board"
+                    placeholder="e.g., CBSE, Bihar Board"
+                    value={newBoard}
+                    onChange={(e) => setNewBoard(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="language">Language</Label>
+                  <Input
+                    id="language"
+                    placeholder="e.g., Hindi, English"
+                    value={newLanguage}
+                    onChange={(e) => setNewLanguage(e.target.value)}
+                  />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="classDescription">Description</Label>
+                <Label htmlFor="classDescription">Description (Optional)</Label>
                 <Textarea
                   id="classDescription"
-                  placeholder="Brief description of the class..."
+                  placeholder="Brief description..."
                   value={newClassDescription}
                   onChange={(e) => setNewClassDescription(e.target.value)}
                 />
@@ -128,8 +169,8 @@ const AdminClasses = () => {
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleAddClass} disabled={createClass.isPending}>
-                {createClass.isPending ? 'Adding...' : 'Add Class'}
+              <Button onClick={handleAddClass} disabled={createClass.isPending || !newGrade || !newSubject}>
+                {createClass.isPending ? 'Adding...' : 'Save Category'}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -159,10 +200,10 @@ const AdminClasses = () => {
       {!isLoading && (!classes || classes.length === 0) && (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground mb-4">No classes yet. Add your first class to get started.</p>
+            <p className="text-muted-foreground mb-4">No categories yet. Add your first class & subject category to get started.</p>
             <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
               <Plus className="h-4 w-4" />
-              Add First Class
+              Add Category
             </Button>
           </CardContent>
         </Card>
@@ -182,14 +223,33 @@ const ClassCard = ({
   onUpdate: (id: string, updates: Partial<Class>) => void;
 }) => {
   const { data: chapters } = useChapters(classItem.id);
+  const parsed = parseClassName(classItem.name);
+  
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editName, setEditName] = useState(classItem.name);
+  const [editGrade, setEditGrade] = useState('');
+  const [editSubject, setEditSubject] = useState('');
+  const [editBoard, setEditBoard] = useState('');
+  const [editLanguage, setEditLanguage] = useState('');
+  
   const [editDescription, setEditDescription] = useState(classItem.description || '');
   const [editIcon, setEditIcon] = useState(classItem.icon || '📚');
 
+  useEffect(() => {
+    if (isEditOpen) {
+      setEditGrade(parsed.grade);
+      setEditSubject(parsed.subject);
+      setEditBoard(parsed.board);
+      setEditLanguage(parsed.language);
+      setEditDescription(classItem.description || '');
+      setEditIcon(classItem.icon || '📚');
+    }
+  }, [isEditOpen, classItem]);
+
   const handleSave = () => {
+    const combinedName = formatClassName(editGrade, editSubject, editBoard, editLanguage);
+    
     onUpdate(classItem.id, {
-      name: editName,
+      name: combinedName,
       description: editDescription,
       icon: editIcon,
     });
@@ -215,13 +275,25 @@ const ClassCard = ({
             </div>
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold group-hover:text-primary transition-colors">
-                {classItem.name}
+                {getDisplayClassName(classItem.name)}
               </h3>
-              <p className="text-sm text-muted-foreground truncate">
-                {classItem.description}
-              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                  {parsed.grade} {parsed.subject ? `- ${parsed.subject}` : ''}
+                </span>
+                {parsed.board && (
+                  <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                    {parsed.board}
+                  </span>
+                )}
+                {parsed.language && (
+                  <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                    {parsed.language}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground px-4">
               {chapters?.length || 0} chapters
             </div>
             <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -235,10 +307,10 @@ const ClassCard = ({
                   <Pencil className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Edit Class</DialogTitle>
-                  <DialogDescription>Update the class details.</DialogDescription>
+                  <DialogTitle>Edit Category</DialogTitle>
+                  <DialogDescription>Update the class, subject, board, or language details.</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
@@ -260,13 +332,41 @@ const ClassCard = ({
                       ))}
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="editClassName">Class Name</Label>
-                    <Input
-                      id="editClassName"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="editGrade">Class / Grade</Label>
+                      <Input
+                        id="editGrade"
+                        value={editGrade}
+                        onChange={(e) => setEditGrade(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="editSubject">Subject</Label>
+                      <Input
+                        id="editSubject"
+                        value={editSubject}
+                        onChange={(e) => setEditSubject(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="editBoard">Board / University</Label>
+                      <Input
+                        id="editBoard"
+                        value={editBoard}
+                        onChange={(e) => setEditBoard(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="editLanguage">Language</Label>
+                      <Input
+                        id="editLanguage"
+                        value={editLanguage}
+                        onChange={(e) => setEditLanguage(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="editClassDescription">Description</Label>
@@ -291,9 +391,9 @@ const ClassCard = ({
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Class</AlertDialogTitle>
+                  <AlertDialogTitle>Delete Category</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete "{classItem.name}"? This will also delete all chapters and content. This action cannot be undone.
+                    Are you sure you want to delete this category? This will also delete all chapters and content. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

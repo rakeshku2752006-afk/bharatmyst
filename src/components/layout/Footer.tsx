@@ -23,10 +23,11 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Classes</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/class/class-9" className="hover:text-primary transition-colors">Class 9</Link></li>
-              <li><Link to="/class/class-10" className="hover:text-primary transition-colors">Class 10</Link></li>
-              <li><Link to="/class/class-11" className="hover:text-primary transition-colors">Class 11</Link></li>
-              <li><Link to="/class/class-12" className="hover:text-primary transition-colors">Class 12</Link></li>
+              <li><Link to="/classes" className="hover:text-primary transition-colors">Class 9</Link></li>
+              <li><Link to="/classes" className="hover:text-primary transition-colors">Class 10</Link></li>
+              <li><Link to="/classes" className="hover:text-primary transition-colors">Class 11</Link></li>
+              <li><Link to="/classes" className="hover:text-primary transition-colors">Class 12</Link></li>
+              <li><Link to="/classes" className="hover:text-primary transition-colors">View All Classes</Link></li>
             </ul>
           </div>
 
@@ -34,10 +35,10 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Resources</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="#" className="hover:text-primary transition-colors">Study Materials</Link></li>
-              <li><Link to="#" className="hover:text-primary transition-colors">Video Lectures</Link></li>
-              <li><Link to="#" className="hover:text-primary transition-colors">Practice Tests</Link></li>
-              <li><Link to="#" className="hover:text-primary transition-colors">Downloads</Link></li>
+              <li><Link to="/pdf-notes" className="hover:text-primary transition-colors">Study Materials</Link></li>
+              <li><Link to="/video-lectures" className="hover:text-primary transition-colors">Video Lectures</Link></li>
+              <li><Link to="/audio-lectures" className="hover:text-primary transition-colors">Audio Lectures</Link></li>
+              <li><Link to="/mind-maps" className="hover:text-primary transition-colors">Mind Maps & Downloads</Link></li>
             </ul>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Class } from '@/hooks/useClasses';
 import { useChapters } from '@/hooks/useChapters';
+import { getDisplayClassName } from '@/lib/classParser';
 
 interface ClassCardProps {
   classData: Class;
@@ -30,7 +31,7 @@ const ClassCard = ({ classData, index }: ClassCardProps) => {
 
           {/* Title */}
           <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
-            {classData.name}
+            {getDisplayClassName(classData.name)}
           </h3>
 
           {/* Description */}
